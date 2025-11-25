@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingshot 兵量配置計算器</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary: #d4af37; /* 金色 */
+            --secondary: #3d5afe; /* 藍色 */
+            --danger: #ff5252;
+            --success: #00e676;
+            --text: #e0e0e0;
+            --input-bg: #2c2c2c;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #333;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        h3 {
+            border-left: 4px solid var(--secondary);
+            padding-left: 10px;
+            margin-top: 25px;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        /* 兵種顏色標示 */
+        .inf-label { color: #4fc3f7; } /* 步兵藍 */
+        .cav-label { color: #ffb74d; } /* 騎兵橘 */
+        .arch-label { color: #81c784; } /* 弓兵綠 */
+
+        /* 原本的計算按鈕樣式已移除 */
+
+        .result-box {
+            background-color: #252526;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #555;
+            /* display: none; <-- 移除，讓結果區塊預設可見 */
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .warning {
+            background-color: rgba(255, 82, 82, 0.15);
+            color: var(--danger);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+            border: 1px solid var(--danger);
+        }
+
+        .strategy-section {
+            margin-top: 30px;
+            border-top: 1px dashed #444;
+            padding-top: 15px;
+            /* display: none; <-- 移除，讓結果區塊預設可見 */
+        }
+        .strategy-title {
+            text-align: center;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .strategy-rec {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            background: #1a1a1a;
+            padding: 15px 0;
+            border-radius: 8px;
+            border: 1px solid var(--primary);
+        }
+        .strategy-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: block;
+        }
+        .strategy-key {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .sub-note {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>👑 出征配兵計算器</h2>
+
+     1. 隊伍設定
+    <div class="input-row">
+        <div class="input-group">
+            <label>最大出征兵量</label>
+            <input type="number" id="a" placeholder="單隊兵量">
+        </div>
+        <div class="input-group">
+            <label>可出征隊伍數</label>
+            <input type="number" id="b" placeholder="隊伍數量">
+        </div>
+    </div>
+
+     2. 兵種數量輸入
+    <div class="input-row">
+        <div class="input-group">
+            <label class="inf-label">LV10 步兵</label>
+            <input type="number" id="c1" placeholder="數量">
+        </div>
+        <div class="input-group">
+            <label class="inf-label">LV9 步兵</label>
+            <input type="number" id="c2" placeholder="數量">
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label class="cav-label">LV10 騎兵</label>
+            <input type="number" id="d1" placeholder="數量">
+        </div>
+        <div class="input-group">
+            <label class="cav-label">LV9 騎兵</label>
+            <input type="number" id="d2" placeholder="數量">
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label class="arch-label">LV10 弓兵</label>
+            <input type="number" id="e1" placeholder="數量">
+        </div>
+        <div class="input-group">
+            <label class="arch-label">LV9 弓兵</label>
+            <input type="number" id="e2" placeholder="數量">
+        </div>
+    </div>
+
+    <div class="result-box" id="resultBox">
+         📊 你的最大兵量比例
+        <div class="result-item">
+            <span>🛡️ 步兵最大比例:</span>
+            <span id="res-inf" style="color:#4fc3f7">0.0%</span>
+        </div>
+        <div class="result-item">
+            <span>🐎 騎兵最大比例:</span>
+            <span id="res-cav" style="color:#ffb74d">0.0%</span>
+        </div>
+        <div class="result-item">
+            <span>🏹 弓兵最大比例:</span>
+            <span id="res-arch" style="color:#81c784">0.0%</span>
+        </div>
+        <div class="result-item" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">
+            <span style="font-size:0.9rem; color:#888">目前總佔比:</span>
+            <span id="res-total">0.0%</span>
+        </div>
+    </div>
+
+    <div id="warning-msg" class="warning">
+        ⚠️ 你的兵無法派滿，建議減少出征隊伍！
+    </div>
+
+    <div class="strategy-section" id="bearSection">
+        <div class="strategy-title">🐻 打熊建議比例配置</div>
+        
+        <div class="strategy-rec">
+            <div>
+                <span class="strategy-val" id="bear-inf" style="color:#4fc3f7">0%</span>
+                <span class="strategy-key">步兵 (Max 10%)</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="bear-cav" style="color:#ffb74d">0%</span>
+                <span class="strategy-key">騎兵</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="bear-arch" style="color:#81c784">0%</span>
+                <span class="strategy-key">弓兵</span>
+            </div>
+        </div>
+        <div class="sub-note">邏輯：弓兵(全出) → 騎兵(進位) → 步兵(補滿, Max 10%)。總和為 100%。</div>
+    </div>
+
+    <div class="strategy-section" id="vikingSection">
+        <div class="strategy-title">🏴‍☠️ 維京人建議比例配置</div>
+        
+        <div class="strategy-rec">
+            <div>
+                <span class="strategy-val" id="viking-inf" style="color:#4fc3f7">0%</span>
+                <span class="strategy-key">步兵 (全出)</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="viking-cav" style="color:#ffb74d">0%</span>
+                <span class="strategy-key">騎兵</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="viking-arch" style="color:#81c784">0%</span>
+                <span class="strategy-key">弓兵</span>
+            </div>
+        </div>
+        <div class="sub-note">邏輯：步兵(全出) → 騎兵(進位) → 弓兵(補滿)。總和為 100%。</div>
+    </div>
+</div>
+
+<script>
+    function val(id) {
+        // 確保從輸入框獲取數值，若為空則返回 0
+        return parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    function calc() {
+        // 由於移除了 display: none;，這裡不再需要顯示區塊的代碼
+
+        // 1. 獲取輸入
+        const a = val('a'); 
+        const b = val('b');
+        
+        const c1 = val('c1'); const c2 = val('c2'); 
+        const d1 = val('d1'); const d2 = val('d2');
+        const e1 = val('e1'); const e2 = val('e2');
+
+        // 2. 基礎變數
+        const totalCapacity = a * b;
+        
+        // 如果沒有輸入總兵量，則不進行後續計算，但保持顯示區塊
+        if (totalCapacity === 0) {
+            // 清空結果，或保持預設 0%
+            document.getElementById('res-inf').innerText = '0.0%';
+            document.getElementById('res-cav').innerText = '0.0%';
+            document.getElementById('res-arch').innerText = '0.0%';
+            document.getElementById('res-total').innerText = '0.0%';
+            document.getElementById('warning-msg').style.display = 'none';
+
+            document.getElementById('bear-inf').innerText = '0%';
+            document.getElementById('bear-cav').innerText = '0%';
+            document.getElementById('bear-arch').innerText = '0%';
+            document.getElementById('viking-inf').innerText = '0%';
+            document.getElementById('viking-cav').innerText = '0%';
+            document.getElementById('viking-arch').innerText = '0%';
+            return;
+        }
+
+        const infTotal = c1 + c2;
+        const cavTotal = d1 + d2;
+        const archTotal = e1 + e2;
+
+        // 3. 計算各兵種最大可提供比例 (未捨入的原始比例)
+        const infPct = (infTotal / totalCapacity) * 100;
+        const cavPct = (cavTotal / totalCapacity) * 100;
+        const archPct = (archTotal / totalCapacity) * 100;
+        const totalPct = infPct + cavPct + archPct;
+
+        // 4. 更新「最大比例」顯示 (保留小數點1位)
+        document.getElementById('res-inf').innerText = infPct.toFixed(1) + '%';
+        document.getElementById('res-cav').innerText = cavPct.toFixed(1) + '%';
+        document.getElementById('res-arch').innerText = archPct.toFixed(1) + '%';
+        
+        const totalEl = document.getElementById('res-total');
+        totalEl.innerText = totalPct.toFixed(1) + '%';
+
+        // 5. 警告邏輯
+        const warningEl = document.getElementById('warning-msg');
+        if (totalPct < 100) {
+            warningEl.style.display = 'block';
+            totalEl.style.color = '#ff5252';
+        } else {
+            warningEl.style.display = 'none';
+            totalEl.style.color = '#00e676';
+        }
+
+        // --- 6. 打熊建議邏輯 (弓兵/騎兵進位, 步兵為餘額) ---
+        let remainingSpaceBear = 100;
+        let bearArchRaw, bearCavRaw, bearInfRaw;
+
+        // 優先級: 1.弓兵 -> 2.騎兵 -> 3.步兵(Max 10%)
+        
+        // 1. 弓兵 (盡可能填滿)
+        bearArchRaw = Math.min(archPct, remainingSpaceBear);
+        remainingSpaceBear -= bearArchRaw;
+
+        // 2. 騎兵 (盡可能填滿)
+        bearCavRaw = Math.min(cavPct, remainingSpaceBear);
+        remainingSpaceBear -= bearCavRaw;
+
+        // 3. 步兵 (最後，且上限10%)
+        bearInfRaw = Math.min(infPct, remainingSpaceBear, 10);
+        
+        // 應用捨入規則：弓兵、騎兵無條件進位，步兵為餘額
+        let bearArchFinal = Math.ceil(bearArchRaw);
+        let bearCavFinal = Math.ceil(bearCavRaw);
+        
+        // 確保進位後兩者總和不超過 100
+        let totalBearCeil = bearArchFinal + bearCavFinal;
+        if (totalBearCeil > 100) {
+            // 由於餘額步兵要為正數，若進位後總和超過 100，則調整最大的那個進位數字
+            if (bearArchFinal >= bearCavFinal) {
+                bearArchFinal = 100 - bearCavFinal;
+            } else {
+                bearCavFinal = 100 - bearArchFinal;
+            }
+        }
+        
+        let bearInfFinal = 100 - bearArchFinal - bearCavFinal;
+
+        // 檢查步兵餘額是否為負數，若是則設為 0
+        if (bearInfFinal < 0) {
+            bearInfFinal = 0; 
+        }
+
+        // 更新 UI
+        document.getElementById('bear-arch').innerText = bearArchFinal + '%';
+        document.getElementById('bear-cav').innerText = bearCavFinal + '%';
+        document.getElementById('bear-inf').innerText = bearInfFinal + '%';
+
+        // --- 7. 維京人建議邏輯 (步兵/騎兵進位, 弓兵為餘額) ---
+        let remainingSpaceViking = 100;
+        let vikingInfRaw, vikingCavRaw, vikingArchRaw;
+        
+        // 優先級: 1.步兵(全出) -> 2.騎兵 -> 3.弓兵
+        
+        // 1. 步兵 (優先且全出 - Max 100%)
+        vikingInfRaw = Math.min(infPct, remainingSpaceViking);
+        remainingSpaceViking -= vikingInfRaw;
+
+        // 2. 騎兵 (其次)
+        vikingCavRaw = Math.min(cavPct, remainingSpaceViking);
+        remainingSpaceViking -= vikingCavRaw;
+
+        // 3. 弓兵 (最後)
+        vikingArchRaw = Math.min(archPct, remainingSpaceViking);
+
+        // 應用捨入規則：步兵、騎兵無條件進位，弓兵為餘額
+        let vikingInfFinal = Math.ceil(vikingInfRaw);
+        let vikingCavFinal = Math.ceil(vikingCavRaw);
+
+        // 確保進位後兩者總和不超過 100
+        let totalVikingCeil = vikingInfFinal + vikingCavFinal;
+        if (totalVikingCeil > 100) {
+            // 若進位後總和超過 100，調整最大的那個進位數字 (優先級 Inf > Cav)
+            if (vikingInfFinal >= vikingCavFinal) {
+                vikingInfFinal = 100 - vikingCavFinal;
+            } else {
+                vikingCavFinal = 100 - vikingInfFinal;
+            }
+        }
+
+        let vikingArchFinal = 100 - vikingInfFinal - vikingCavFinal;
+        
+        if (vikingArchFinal < 0) {
+            vikingArchFinal = 0; // 避免進位後餘額出現負數
+        }
+
+        // 更新 UI
+        document.getElementById('viking-inf').innerText = vikingInfFinal + '%';
+        document.getElementById('viking-cav').innerText = vikingCavFinal + '%';
+        document.getElementById('viking-arch').innerText = vikingArchFinal + '%';
+    }
+
+    // 頁面加載完成後立即執行一次 calc()
+    document.addEventListener('DOMContentLoaded', calc);
+
+    // 監聽所有 input[type="number"] 的輸入事件
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        // 使用 'input' 事件來監聽輸入或變動
+        input.addEventListener('input', calc);
+    });
+
+</script>
+
+</body>
+</html>
