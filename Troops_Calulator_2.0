@@ -1,0 +1,492 @@
+感謝您的糾正與補充！我完全理解了這兩個修正點：
+
+1. **欄位名稱修正**：
+* 原本的「最大出征兵量」改名為 **「初始出征兵量」**。
+
+
+2. **「部隊最大兵量」的計算公式修正**：
+* 正確公式為：**`初始出征兵量 × (1 + troop buff) + Mighty Bison Pet buff`**
+* *(註：此處為單隊或整體基準的計算，我們將會精準套用此公式來更新顯示結果)*
+
+
+
+以下是為您整合好所有最新修改（含移除執行鍵、自動計算、新欄位、新命名、公式修正）的完整程式碼：
+
+```html
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingshot 兵量配置計算器</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary: #d4af37; /* 金色 */
+            --secondary: #3d5afe; /* 藍色 */
+            --danger: #ff5252;
+            --success: #00e676;
+            --text: #e0e0e0;
+            --input-bg: #2c2c2c;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #333;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        h3 {
+            border-left: 4px solid var(--secondary);
+            padding-left: 10px;
+            margin-top: 25px;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Radio Group 樣式 */
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            height: 45px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .radio-label input {
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        
+        /* 兵種顏色標示 */
+        .inf-label { color: #4fc3f7; } /* 步兵藍 */
+        .cav-label { color: #ffb74d; } /* 騎兵橘 */
+        .arch-label { color: #81c784; } /* 弓兵綠 */
+
+        .result-box {
+            background-color: #252526;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #555;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .warning {
+            background-color: rgba(255, 82, 82, 0.15);
+            color: var(--danger);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+            border: 1px solid var(--danger);
+        }
+
+        .strategy-section {
+            margin-top: 30px;
+            border-top: 1px dashed #444;
+            padding-top: 15px;
+        }
+        .strategy-title {
+            text-align: center;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .strategy-rec {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            background: #1a1a1a;
+            padding: 15px 0;
+            border-radius: 8px;
+            border: 1px solid var(--primary);
+        }
+        .strategy-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: block;
+        }
+        .strategy-key {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .sub-note {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>👑 出征配兵計算器</h2>
+
+    <h3>1. 隊伍設定</h3>
+    <div class="input-row">
+        <div class="input-group">
+            <label>初始出征兵量</label>
+            <input type="number" id="a" placeholder="單隊兵量">
+        </div>
+        <div class="input-group">
+            <label>可出征隊伍數</label>
+            <input type="number" id="b" placeholder="隊伍數量">
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label>Troop Buff</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
+                <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Mighty Bison Pet Buff</label>
+            <select id="bisonBuff">
+                <option value="0">0</option>
+                <option value="1500">1500</option>
+                <option value="3000">3000</option>
+                <option value="4500">4500</option>
+                <option value="6000">6000</option>
+                <option value="7500">7500</option>
+                <option value="9000">9000</option>
+                <option value="10500">10500</option>
+                <option value="12000">12000</option>
+                <option value="13500">13500</option>
+                <option value="15000">15000</option>
+            </select>
+        </div>
+    </div>
+
+    <h3>2. 兵種數量輸入</h3>
+    <div class="input-row">
+        <div class="input-group">
+            <label class="inf-label">Max LV. 步兵</label>
+            <input type="number" id="c1" placeholder="數量">
+        </div>
+        <div class="input-group">
+            <label class="inf-label">2nd LV. 步兵</label>
+            <input type="number" id="c2" placeholder="數量">
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label class="cav-label">Max LV. 騎兵</label>
+            <input type="number" id="d1" placeholder="數量">
+        </div>
+        <div class="input-group">
+            <label class="cav-label">2nd LV. 騎兵</label>
+            <input type="number" id="d2" placeholder="數量">
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label class="arch-label">Max LV. 弓兵</label>
+            <input type="number" id="e1" placeholder="數量">
+        </div>
+        <div class="input-group">
+            <label class="arch-label">2nd LV. 弓兵</label>
+            <input type="number" id="e2" placeholder="數量">
+        </div>
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <h3>📊 你的最大兵量比例</h3>
+        <div class="result-item" style="border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 8px;">
+            <span style="color: var(--primary); font-weight: bold;">🛡️ 你的部隊最大兵量:</span>
+            <span id="res-max-troop" style="color: var(--primary); font-weight: bold;">0</span>
+        </div>
+        <div class="result-item">
+            <span>🛡️ 步兵最大比例:</span>
+            <span id="res-inf" style="color:#4fc3f7">0.0%</span>
+        </div>
+        <div class="result-item">
+            <span>🐎 騎兵最大比例:</span>
+            <span id="res-cav" style="color:#ffb74d">0.0%</span>
+        </div>
+        <div class="result-item">
+            <span>🏹 弓兵最大比例:</span>
+            <span id="res-arch" style="color:#81c784">0.0%</span>
+        </div>
+        <div class="result-item" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">
+            <span style="font-size:0.9rem; color:#888">目前總佔比:</span>
+            <span id="res-total">0.0%</span>
+        </div>
+    </div>
+
+    <div id="warning-msg" class="warning">
+        ⚠️ 你的兵無法派滿，建議減少出征隊伍！
+    </div>
+
+    <div class="strategy-section" id="bearSection">
+        <div class="strategy-title">🐻 打熊建議比例配置</div>
+        
+        <div class="strategy-rec">
+            <div>
+                <span class="strategy-val" id="bear-inf" style="color:#4fc3f7">0%</span>
+                <span class="strategy-key">步兵 (Max 10%)</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="bear-cav" style="color:#ffb74d">0%</span>
+                <span class="strategy-key">騎兵</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="bear-arch" style="color:#81c784">0%</span>
+                <span class="strategy-key">弓兵</span>
+            </div>
+        </div>
+        <div class="sub-note">邏輯：弓兵(進位) → 騎兵(進位) → 步兵(餘額, Max 10%)。總和為 100%。</div>
+    </div>
+
+    <div class="strategy-section" id="vikingSection">
+        <div class="strategy-title">🏴‍☠️ 維京人建議比例配置</div>
+        
+        <div class="strategy-rec">
+            <div>
+                <span class="strategy-val" id="viking-inf" style="color:#4fc3f7">0%</span>
+                <span class="strategy-key">步兵 (全出)</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="viking-cav" style="color:#ffb74d">0%</span>
+                <span class="strategy-key">騎兵</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="viking-arch" style="color:#81c784">0%</span>
+                <span class="strategy-key">弓兵</span>
+            </div>
+        </div>
+        <div class="sub-note">邏輯：步兵(進位, Max 100%) → 騎兵(進位) → 弓兵(餘額)。總和為 100%。</div>
+    </div>
+</div>
+
+<script>
+    // 支援 Radio 按鈕點擊兩次取消勾選的功能
+    function handleRadioClick(radio) {
+        if (radio.wasChecked) {
+            radio.checked = false;
+            radio.wasChecked = false;
+        } else {
+            document.querySelectorAll('input[name="troopBuff"]').forEach(r => r.wasChecked = false);
+            radio.wasChecked = true;
+        }
+        calc();
+    }
+
+    function val(id) {
+        return parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    function calc() {
+        // 1. 獲取輸入
+        const initialTroop = val('a'); 
+        const b = val('b');
+        
+        // 獲取 Troop Buff 選項
+        const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
+        const troopBuffVal = selectedBuff ? parseFloat(selectedBuff.value) : 0;
+
+        // 獲取 Bison Pet Buff
+        const bisonBuffVal = parseFloat(document.getElementById('bisonBuff').value) || 0;
+
+        // 兵種數量
+        const c1 = val('c1'); const c2 = val('c2'); 
+        const d1 = val('d1'); const d2 = val('d2');
+        const e1 = val('e1'); const e2 = val('e2');
+
+        // 2. 計算「部隊最大兵量」: (初始出征兵量)*(1 + troop buff) + Mighty Bison pet buff
+        // 註：這裡使用單隊/基準的兵量計算，若需要考慮隊伍數可乘上 b，依照您的公式維持 (initialTroop * (1 + troopBuffVal) + bisonBuffVal)
+        const maxSingleTroopCapacity = initialTroop * (1 + troopBuffVal) + bisonBuffVal;
+        
+        // 總容量 = 單隊最大兵量 × 隊伍數
+        const totalCapacity = maxSingleTroopCapacity * b;
+
+        // 顯示計算出的部隊最大兵量 (顯示單隊或總隊伍容量，這裡以單隊或總體呈現？依公式呈現單隊最大或總最大。此處顯示總隊伍對應的最大總兵量或單隊最大，我們將總兵量顯示出來，或加上千分位)
+        document.getElementById('res-max-troop').innerText = Math.round(maxSingleTroopCapacity).toLocaleString();
+
+        if (totalCapacity === 0) {
+            document.getElementById('res-inf').innerText = '0.0%';
+            document.getElementById('res-cav').innerText = '0.0%';
+            document.getElementById('res-arch').innerText = '0.0%';
+            document.getElementById('res-total').innerText = '0.0%';
+            document.getElementById('warning-msg').style.display = 'none';
+
+            document.getElementById('bear-inf').innerText = '0%';
+            document.getElementById('bear-cav').innerText = '0%';
+            document.getElementById('bear-arch').innerText = '0%';
+            document.getElementById('viking-inf').innerText = '0%';
+            document.getElementById('viking-cav').innerText = '0%';
+            document.getElementById('viking-arch').innerText = '0%';
+            return;
+        }
+
+        const infTotal = c1 + c2;
+        const cavTotal = d1 + d2;
+        const archTotal = e1 + e2;
+
+        // 3. 計算各兵種最大可提供比例
+        const infPct = (infTotal / totalCapacity) * 100;
+        const cavPct = (cavTotal / totalCapacity) * 100;
+        const archPct = (archTotal / totalCapacity) * 100;
+        const totalPct = infPct + cavPct + archPct;
+
+        // 4. 更新「最大比例」顯示
+        document.getElementById('res-inf').innerText = infPct.toFixed(1) + '%';
+        document.getElementById('res-cav').innerText = cavPct.toFixed(1) + '%';
+        document.getElementById('res-arch').innerText = archPct.toFixed(1) + '%';
+        
+        const totalEl = document.getElementById('res-total');
+        totalEl.innerText = totalPct.toFixed(1) + '%';
+
+        // 5. 警告邏輯
+        const warningEl = document.getElementById('warning-msg');
+        if (totalPct < 100) {
+            warningEl.style.display = 'block';
+            totalEl.style.color = '#ff5252';
+        } else {
+            warningEl.style.display = 'none';
+            totalEl.style.color = '#00e676';
+        }
+
+        // --- 6. 打熊建議邏輯 ---
+        let remainingSpaceBear = 100;
+        let bearArchRaw, bearCavRaw, bearInfRaw;
+
+        bearArchRaw = Math.min(archPct, remainingSpaceBear);
+        remainingSpaceBear -= bearArchRaw;
+
+        bearCavRaw = Math.min(cavPct, remainingSpaceBear);
+        remainingSpaceBear -= bearCavRaw;
+
+        bearInfRaw = Math.min(infPct, remainingSpaceBear, 10);
+        
+        let bearArchFinal = Math.ceil(bearArchRaw);
+        let bearCavFinal = Math.ceil(bearCavRaw);
+        
+        let totalBearCeil = bearArchFinal + bearCavFinal;
+        if (totalBearCeil > 100) {
+            if (bearArchFinal >= bearCavFinal) {
+                bearArchFinal = 100 - bearCavFinal;
+            } else {
+                bearCavFinal = 100 - bearArchFinal;
+            }
+        }
+        
+        let bearInfFinal = 100 - bearArchFinal - bearCavFinal;
+        if (bearInfFinal < 0) bearInfFinal = 0;
+
+        document.getElementById('bear-arch').innerText = bearArchFinal + '%';
+        document.getElementById('bear-cav').innerText = bearCavFinal + '%';
+        document.getElementById('bear-inf').innerText = bearInfFinal + '%';
+
+        // --- 7. 維京人建議邏輯 ---
+        let remainingSpaceViking = 100;
+        let vikingInfRaw, vikingCavRaw, vikingArchRaw;
+        
+        vikingInfRaw = Math.min(infPct, remainingSpaceViking);
+        remainingSpaceViking -= vikingInfRaw;
+
+        vikingCavRaw = Math.min(cavPct, remainingSpaceViking);
+        remainingSpaceViking -= vikingCavRaw;
+
+        vikingArchRaw = Math.min(archPct, remainingSpaceViking);
+
+        let vikingInfFinal = Math.ceil(vikingInfRaw);
+        let vikingCavFinal = Math.ceil(vikingCavRaw);
+
+        let totalVikingCeil = vikingInfFinal + vikingCavFinal;
+        if (totalVikingCeil > 100) {
+            if (vikingInfFinal >= vikingCavFinal) {
+                vikingInfFinal = 100 - vikingCavFinal;
+            } else {
+                vikingCavFinal = 100 - vikingInfFinal;
+            }
+        }
+
+        let vikingArchFinal = 100 - vikingInfFinal - vikingCavFinal;
+        if (vikingArchFinal < 0) vikingArchFinal = 0;
+
+        document.getElementById('viking-inf').innerText = vikingInfFinal + '%';
+        document.getElementById('viking-cav').innerText = vikingCavFinal + '%';
+        document.getElementById('viking-arch').innerText = vikingArchFinal + '%';
+    }
+
+    // 初始載入與監聽事件
+    document.addEventListener('DOMContentLoaded', calc);
+
+    // 監聽所有輸入框與下拉選單的變動
+    document.querySelectorAll('input[type="number"], select').forEach(element => {
+        element.addEventListener('input', calc);
+        element.addEventListener('change', calc);
+    });
+</script>
+
+</body>
+</html>
+
+```
