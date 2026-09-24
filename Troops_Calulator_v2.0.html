@@ -61,7 +61,6 @@
             font-size: 0.85rem;
             color: #aaa;
         }
-        /* 改用 text 允許輸入 + - * / */
         input[type="text"], select {
             width: 100%;
             padding: 12px;
@@ -201,22 +200,22 @@
                 <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
             </div>
         </div>
-         <div class="input-group">
-            <label>Mighty Bison Pet Buff</label>
-            <select id="bisonBuff">
-                <option value="0">LV.0</option>
-                <option value="1500">LV.1 +1500</option>
-                <option value="3000">LV.2 +3000</option>
-                <option value="4500">LV.3 +4500</option>
-                <option value="6000">LV.4 +6000</option>
-                <option value="7500">LV.5 +7500</option>
-                <option value="9000">LV.6 +9000</option>
-                <option value="10500">LV.7 +10500</option>
-                <option value="12000">LV.8 +12000</option>
-                <option value="13500">LV.9 +13500</option>
-                <option value="15000">LV.10 +15000</option>
-            </select>
-        </div>
+        <div class="input-group">
+            <label>Mighty Bison Pet Buff</label>
+            <select id="bisonBuff">
+                <option value="0">0</option>
+                <option value="1500">LV.1 +1500</option>
+                <option value="3000">LV.2 +3000</option>
+                <option value="4500">LV.3 +4500</option>
+                <option value="6000">LV.4 +6000</option>
+                <option value="7500">LV.5 +7500</option>
+                <option value="9000">LV.6 +9000</option>
+                <option value="10500">LV.7 +10500</option>
+                <option value="12000">LV.8 +12000</option>
+                <option value="13500">LV.9 +13500</option>
+                <option value="15000">LV.10 +15000</option>
+            </select>
+        </div>
     </div>
 
     <h3>2. 兵種數量輸入</h3>
@@ -329,7 +328,7 @@
 </div>
 
 <script>
-    // 支援算式解析的運算函式
+    // 支援算式解析的運算函式（修正 NaN 預覽問題）
     function parseValue(id) {
         const rawStr = document.getElementById(id).value.trim();
         const previewEl = document.getElementById('preview-' + id);
@@ -351,25 +350,25 @@
             const result = eval(sanitized);
             
             if (isNaN(result) || !isFinite(result)) {
-                if (previewEl) previewEl.innerText = '格式錯誤';
+                if (previewEl) previewEl.innerText = '';
                 return 0;
             }
 
             // 如果使用者輸入的是算式（含有運算符號），在下方小字顯示計算後的數值
             if (/[+\-*/]/.test(sanitized)) {
-                if (previewEl) previewEl.innerText = `= ${Number(result.toLocaleString())}`;
+                if (previewEl) previewEl.innerText = `= ${Math.round(result).toLocaleString()}`;
             } else {
                 if (previewEl) previewEl.innerText = '';
             }
 
             return result;
         } catch (e) {
-            if (previewEl) previewEl.innerText = '計算中...';
+            if (previewEl) previewEl.innerText = '';
             return 0;
         }
     }
 
-    // 儲存資料到 localStorage (儲存原始輸入的字串，例如 "500000+500000")
+    // 儲存資料到 localStorage
     function saveData() {
         document.querySelectorAll('input[type="text"]').forEach(input => {
             localStorage.setItem('k_input_' + input.id, input.value);
