@@ -1,244 +1,557 @@
-    /* Calculation live preview small text */
-    .calc-preview {
-        font-size: 0.75rem;
-        color: #888;
-        margin-top: 3px;
-        text-align: right;
-        min-height: 14px;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kingshot Troop Deployment Calculator</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --primary: #d4af37; /* Gold */
+            --secondary: #3d5afe; /* Blue */
+            --danger: #ff5252;
+            --success: #00e676;
+            --text: #e0e0e0;
+            --input-bg: #2c2c2c;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            margin: 0;
+        }
+        .container {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #333;
+        }
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        h3 {
+            border-left: 4px solid var(--secondary);
+            padding-left: 10px;
+            margin-top: 25px;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-group {
+            flex: 1;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
 
-    /* Radio Group styles */
-    .radio-group {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-        height: 45px;
-    }
-    .radio-label {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: #ccc;
-        cursor: pointer;
-        font-size: 0.95rem;
-    }
-    .radio-label input {
-        accent-color: var(--primary);
-        cursor: pointer;
-    }
-    
-    /* Troop type colors */
-    .inf-label { color: #4fc3f7; } /* Infantry Blue */
-    .cav-label { color: #ffb74d; } /* Cavalry Orange */
-    .arch-label { color: #81c784; } /* Archer Green */
+        .calc-preview {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 3px;
+            text-align: right;
+            min-height: 14px;
+        }
 
-    .result-box {
-        background-color: #252526;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 15px;
-        border-left: 4px solid #555;
-    }
-    .result-item {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 8px;
-        font-size: 1rem;
-    }
-    .warning {
-        background-color: rgba(255, 82, 82, 0.15);
-        color: var(--danger);
-        padding: 10px;
-        border-radius: 6px;
-        text-align: center;
-        margin-top: 15px;
-        font-weight: bold;
-        display: none;
-        border: 1px solid var(--danger);
-    }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            height: 45px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .radio-label input {
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        
+        .inf-label { color: #4fc3f7; } /* Infantry Blue */
+        .cav-label { color: #ffb74d; } /* Cavalry Orange */
+        .arch-label { color: #81c784; } /* Archer Green */
 
-    .strategy-section {
-        margin-top: 30px;
-        border-top: 1px dashed #444;
-        padding-top: 15px;
-    }
-    .strategy-title {
-        text-align: center;
-        color: var(--primary);
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-    .strategy-rec {
-        display: flex;
-        justify-content: space-around;
-        text-align: center;
-        background: #1a1a1a;
-        padding: 15px 0;
-        border-radius: 8px;
-        border: 1px solid var(--primary);
-    }
-    .strategy-val {
-        font-size: 1.4rem;
-        font-weight: bold;
-        display: block;
-    }
-    .strategy-key {
-        font-size: 0.8rem;
-        color: #888;
-    }
-    .sub-note {
-        font-size: 0.8rem;
-        color: #666;
-        text-align: center;
-        margin-top: 8px;
-    }
-</style>
+        .result-box {
+            background-color: #252526;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #555;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        .warning {
+            background-color: rgba(255, 82, 82, 0.15);
+            color: var(--danger);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+            border: 1px solid var(--danger);
+        }
 
+        .strategy-section {
+            margin-top: 30px;
+            border-top: 1px dashed #444;
+            padding-top: 15px;
+        }
+        .strategy-title {
+            text-align: center;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .strategy-rec {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            background: #1a1a1a;
+            padding: 15px 0;
+            border-radius: 8px;
+            border: 1px solid var(--primary);
+        }
+        .strategy-val {
+            font-size: 1.4rem;
+            font-weight: bold;
+            display: block;
+        }
+        .strategy-key {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .sub-note {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
 
-<h3>1. March Settings</h3>
-<div class="input-row">
-    <div class="input-group">
-        <label>Base March Capacity</label>
-        <input type="text" id="a" placeholder="e.g., 500000+500000">
-        <div class="calc-preview" id="preview-a"></div>
-    </div>
-    <div class="input-group">
-        <label>Available Marches</label>
-        <input type="text" id="b" placeholder="Number of marches">
-        <div class="calc-preview" id="preview-b"></div>
-    </div>
-</div>
+<div class="container">
+    <h2>👑 Kingshot Troop Calculator</h2>
 
-<div class="input-row">
-    <div class="input-group">
-        <label>Troop Buff</label>
-        <div class="radio-group">
-            <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
-            <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
+    <h3>1. March Settings</h3>
+    <div class="input-row">
+        <div class="input-group">
+            <label>Initial March Capacity</label>
+            <input type="text" id="a" placeholder="e.g., 500000+500000">
+            <div class="calc-preview" id="preview-a"></div>
+        </div>
+        <div class="input-group">
+            <label>Available Marches</label>
+            <input type="text" id="b" placeholder="Marches count">
+            <div class="calc-preview" id="preview-b"></div>
         </div>
     </div>
-    <div class="input-group">
-        <label>Mighty Bison Pet Buff</label>
-        <select id="bisonBuff">
-            <option value="0">0</option>
-            <option value="1500">LV.1 +1500</option>
-            <option value="3000">LV.2 +3000</option>
-            <option value="4500">LV.3 +4500</option>
-            <option value="6000">LV.4 +6000</option>
-            <option value="7500">LV.5 +7500</option>
-            <option value="9000">LV.6 +9000</option>
-            <option value="10500">LV.7 +10500</option>
-            <option value="12000">LV.8 +12000</option>
-            <option value="13500">LV.9 +13500</option>
-            <option value="15000">LV.10 +15000</option>
-        </select>
-    </div>
-</div>
 
-<h3>2. Troop Quantities</h3>
-<div class="input-row">
-    <div class="input-group">
-        <label class="inf-label">Max LV. Infantry</label>
-        <input type="text" id="c1" placeholder="Can use math formula">
-        <div class="calc-preview" id="preview-c1"></div>
-    </div>
-    <div class="input-group">
-        <label class="inf-label">2nd LV. Infantry</label>
-        <input type="text" id="c2" placeholder="Can use math formula">
-        <div class="calc-preview" id="preview-c2"></div>
-    </div>
-</div>
-
-<div class="input-row">
-    <div class="input-group">
-        <label class="cav-label">Max LV. Cavalry</label>
-        <input type="text" id="d1" placeholder="Can use math formula">
-        <div class="calc-preview" id="preview-d1"></div>
-    </div>
-    <div class="input-group">
-        <label class="cav-label">2nd LV. Cavalry</label>
-        <input type="text" id="d2" placeholder="Can use math formula">
-        <div class="calc-preview" id="preview-d2"></div>
-    </div>
-</div>
-
-<div class="input-row">
-    <div class="input-group">
-        <label class="arch-label">Max LV. Archer</label>
-        <input type="text" id="e1" placeholder="Can use math formula">
-        <div class="calc-preview" id="preview-e1"></div>
-    </div>
-    <div class="input-group">
-        <label class="arch-label">2nd LV. Archer</label>
-        <input type="text" id="e2" placeholder="Can use math formula">
-        <div class="calc-preview" id="preview-e2"></div>
-    </div>
-</div>
-
-<div class="result-box" id="resultBox">
-    <h3>📊 Maximum Troop Ratios</h3>
-    <div class="result-item" style="border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 8px;">
-        <span style="color: var(--primary); font-weight: bold;">🛡️ Max Single March Capacity:</span>
-        <span id="res-max-troop" style="color: var(--primary); font-weight: bold;">0</span>
-    </div>
-    <div class="result-item">
-        <span>🛡️ Infantry Max Ratio:</span>
-        <span id="res-inf" style="color:#4fc3f7">0.0%</span>
-    </div>
-    <div class="result-item">
-        <span>🐎 Cavalry Max Ratio:</span>
-        <span id="res-cav" style="color:#ffb74d">0.0%</span>
-    </div>
-    <div class="result-item">
-        <span>🏹 Archer Max Ratio:</span>
-        <span id="res-arch" style="color:#81c784">0.0%</span>
-    </div>
-    <div class="result-item" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">
-        <span style="font-size:0.9rem; color:#888">Current Total Share:</span>
-        <span id="res-total">0.0%</span>
-    </div>
-</div>
-
-<div id="warning-msg" class="warning">
-    ⚠️ You cannot fill your march capacity! Consider reducing active marches.
-</div>
-
-<div class="strategy-section" id="bearSection">
-    <div class="strategy-title">🐻 Bear Trap Recommended Ratio</div>
-    
-    <div class="strategy-rec">
-        <div>
-            <span class="strategy-val" id="bear-inf" style="color:#4fc3f7">0%</span>
-            <span class="strategy-key">Infantry (Max 10%)</span>
+    <div class="input-row">
+        <div class="input-group">
+            <label>Troop Buff</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
+                <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
+            </div>
         </div>
-        <div>
-            <span class="strategy-val" id="bear-cav" style="color:#ffb74d">0%</span>
-            <span class="strategy-key">Cavalry</span>
-        </div>
-        <div>
-            <span class="strategy-val" id="bear-arch" style="color:#81c784">0%</span>
-            <span class="strategy-key">Archer</span>
+        <div class="input-group">
+            <label>Mighty Bison Pet Buff</label>
+            <select id="bisonBuff">
+                <option value="0">0</option>
+                <option value="1500">LV.1 +1500</option>
+                <option value="3000">LV.2 +3000</option>
+                <option value="4500">LV.3 +4500</option>
+                <option value="6000">LV.4 +6000</option>
+                <option value="7500">LV.5 +7500</option>
+                <option value="9000">LV.6 +9000</option>
+                <option value="10500">LV.7 +10500</option>
+                <option value="12000">LV.8 +12000</option>
+                <option value="13500">LV.9 +13500</option>
+                <option value="15000">LV.10 +15000</option>
+            </select>
         </div>
     </div>
-    <div class="sub-note">Logic: Archer(Round up) → Cavalry(Round up) → Infantry(Remainder, Max 10%). Total sums to 100%.</div>
-</div>
 
-<div class="strategy-section" id="vikingSection">
-    <div class="strategy-title">🏴‍☠️ Vikings Recommended Ratio</div>
-    
-    <div class="strategy-rec">
-        <div>
-            <span class="strategy-val" id="viking-inf" style="color:#4fc3f7">0%</span>
-            <span class="strategy-key">Infantry (All out)</span>
+    <h3>2. Troop Quantities</h3>
+    <div class="input-row">
+        <div class="input-group">
+            <label class="inf-label">Max LV. Infantry</label>
+            <input type="text" id="c1" placeholder="Supports formulas">
+            <div class="calc-preview" id="preview-c1"></div>
         </div>
-        <div>
-            <span class="strategy-val" id="viking-cav" style="color:#ffb74d">0%</span>
-            <span class="strategy-key">Cavalry</span>
-        </div>
-        <div>
-            <span class="strategy-val" id="viking-arch" style="color:#81c784">0%</span>
-            <span class="strategy-key">Archer</span>
+        <div class="input-group">
+            <label class="inf-label">2nd LV. Infantry</label>
+            <input type="text" id="c2" placeholder="Supports formulas">
+            <div class="calc-preview" id="preview-c2"></div>
         </div>
     </div>
-    <div class="sub-note">Logic: Infantry(Round up, Max 100%) → Cavalry(Round up) → Archer(Remainder). Total sums to 100%.</div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label class="cav-label">Max LV. Cavalry</label>
+            <input type="text" id="d1" placeholder="Supports formulas">
+            <div class="calc-preview" id="preview-d1"></div>
+        </div>
+        <div class="input-group">
+            <label class="cav-label">2nd LV. Cavalry</label>
+            <input type="text" id="d2" placeholder="Supports formulas">
+            <div class="calc-preview" id="preview-d2"></div>
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label class="arch-label">Max LV. Archer</label>
+            <input type="text" id="e1" placeholder="Supports formulas">
+            <div class="calc-preview" id="preview-e1"></div>
+        </div>
+        <div class="input-group">
+            <label class="arch-label">2nd LV. Archer</label>
+            <input type="text" id="e2" placeholder="Supports formulas">
+            <div class="calc-preview" id="preview-e2"></div>
+        </div>
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <h3>📊 Maximum Troop Ratios</h3>
+        <div class="result-item" style="border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 8px;">
+            <span style="color: var(--primary); font-weight: bold;">🛡️ Max Single March Capacity:</span>
+            <span id="res-max-troop" style="color: var(--primary); font-weight: bold;">0</span>
+        </div>
+        <div class="result-item">
+            <span>🛡️ Infantry Max Ratio:</span>
+            <span id="res-inf" style="color:#4fc3f7">0.0%</span>
+        </div>
+        <div class="result-item">
+            <span>🐎 Cavalry Max Ratio:</span>
+            <span id="res-cav" style="color:#ffb74d">0.0%</span>
+        </div>
+        <div class="result-item">
+            <span>🏹 Archer Max Ratio:</span>
+            <span id="res-arch" style="color:#81c784">0.0%</span>
+        </div>
+        <div class="result-item" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">
+            <span style="font-size:0.9rem; color:#888">Current Total Share:</span>
+            <span id="res-total">0.0%</span>
+        </div>
+    </div>
+
+    <div id="warning-msg" class="warning">
+        ⚠️ You cannot fill your march capacity! Consider reducing active marches.
+    </div>
+
+    <div class="strategy-section" id="bearSection">
+        <div class="strategy-title">🐻 Bear Trap Recommended Ratio</div>
+        
+        <div class="strategy-rec">
+            <div>
+                <span class="strategy-val" id="bear-inf" style="color:#4fc3f7">0%</span>
+                <span class="strategy-key">Infantry (Max 10%)</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="bear-cav" style="color:#ffb74d">0%</span>
+                <span class="strategy-key">Cavalry</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="bear-arch" style="color:#81c784">0%</span>
+                <span class="strategy-key">Archer</span>
+            </div>
+        </div>
+        <div class="sub-note">Logic: Archer (Round up) → Cavalry (Round up) → Infantry (Remainder, Max 10%). Total sums to 100%.</div>
+    </div>
+
+    <div class="strategy-section" id="vikingSection">
+        <div class="strategy-title">🏴‍☠️ Vikings Recommended Ratio</div>
+        
+        <div class="strategy-rec">
+            <div>
+                <span class="strategy-val" id="viking-inf" style="color:#4fc3f7">0%</span>
+                <span class="strategy-key">Infantry (All out)</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="viking-cav" style="color:#ffb74d">0%</span>
+                <span class="strategy-key">Cavalry</span>
+            </div>
+            <div>
+                <span class="strategy-val" id="viking-arch" style="color:#81c784">0%</span>
+                <span class="strategy-key">Archer</span>
+            </div>
+        </div>
+        <div class="sub-note">Logic: Infantry (Round up, Max 100%) → Cavalry (Round up) → Archer (Remainder). Total sums to 100%.</div>
+    </div>
 </div>
+
+<script>
+    function parseValue(id) {
+        const rawStr = document.getElementById(id).value.trim();
+        const previewEl = document.getElementById('preview-' + id);
+
+        if (!rawStr) {
+            if (previewEl) previewEl.innerText = '';
+            return 0;
+        }
+
+        // Prevent parsing incomplete expressions like trailing operators
+        if (/[+\-*/.]$/.test(rawStr)) {
+            if (previewEl) previewEl.innerText = 'Calculating...';
+            return 0;
+        }
+
+        try {
+            const sanitized = rawStr.replace(/[^0-9+\-*/().]/g, '');
+            if (!sanitized) {
+                if (previewEl) previewEl.innerText = '';
+                return 0;
+            }
+
+            const result = eval(sanitized);
+            
+            if (isNaN(result) || !isFinite(result)) {
+                if (previewEl) previewEl.innerText = '';
+                return 0;
+            }
+
+            if (/[+\-*/]/.test(sanitized)) {
+                if (previewEl) previewEl.innerText = `= ${Number(result.toLocaleString())}`;
+            } else {
+                if (previewEl) previewEl.innerText = '';
+            }
+
+            return result;
+        } catch (e) {
+            if (previewEl) previewEl.innerText = '';
+            return 0;
+        }
+    }
+
+    function saveData() {
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            localStorage.setItem('k_input_' + input.id, input.value);
+        });
+
+        const bison = document.getElementById('bisonBuff');
+        localStorage.setItem('k_bison', bison.value);
+
+        const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
+        if (selectedBuff) {
+            localStorage.setItem('k_troopBuff', selectedBuff.value);
+        } else {
+            localStorage.removeItem('k_troopBuff');
+        }
+    }
+
+    function loadData() {
+        document.querySelectorAll('input[type="text"]').forEach(input => {
+            const savedVal = localStorage.getItem('k_input_' + input.id);
+            if (savedVal !== null) {
+                input.value = savedVal;
+            }
+        });
+
+        const savedBison = localStorage.getItem('k_bison');
+        if (savedBison !== null) {
+            document.getElementById('bisonBuff').value = savedBison;
+        }
+
+        const savedTroopBuff = localStorage.getItem('k_troopBuff');
+        if (savedTroopBuff !== null) {
+            const radio = document.querySelector(`input[name="troopBuff"][value="${savedTroopBuff}"]`);
+            if (radio) {
+                radio.checked = true;
+                radio.wasChecked = true;
+            }
+        }
+    }
+
+    function handleRadioClick(radio) {
+        if (radio.wasChecked) {
+            radio.checked = false;
+            radio.wasChecked = false;
+        } else {
+            document.querySelectorAll('input[name="troopBuff"]').forEach(r => r.wasChecked = false);
+            radio.wasChecked = true;
+        }
+        saveData();
+        calc();
+    }
+
+    function calc() {
+        saveData();
+
+        const initialTroop = parseValue('a'); 
+        const b = parseValue('b');
+        
+        const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
+        const troopBuffVal = selectedBuff ? parseFloat(selectedBuff.value) : 0;
+
+        const bisonBuffVal = parseFloat(document.getElementById('bisonBuff').value) || 0;
+
+        const c1 = parseValue('c1'); const c2 = parseValue('c2'); 
+        const d1 = parseValue('d1'); const d2 = parseValue('d2');
+        const e1 = parseValue('e1'); const e2 = parseValue('e2');
+
+        const maxSingleTroopCapacity = initialTroop * (1 + troopBuffVal) + bisonBuffVal;
+        const totalCapacity = maxSingleTroopCapacity * b;
+
+        document.getElementById('res-max-troop').innerText = Math.round(maxSingleTroopCapacity).toLocaleString();
+
+        if (totalCapacity === 0) {
+            document.getElementById('res-inf').innerText = '0.0%';
+            document.getElementById('res-cav').innerText = '0.0%';
+            document.getElementById('res-arch').innerText = '0.0%';
+            document.getElementById('res-total').innerText = '0.0%';
+            document.getElementById('warning-msg').style.display = 'none';
+
+            document.getElementById('bear-inf').innerText = '0%';
+            document.getElementById('bear-cav').innerText = '0%';
+            document.getElementById('bear-arch').innerText = '0%';
+            document.getElementById('viking-inf').innerText = '0%';
+            document.getElementById('viking-cav').innerText = '0%';
+            document.getElementById('viking-arch').innerText = '0%';
+            return;
+        }
+
+        const infTotal = c1 + c2;
+        const cavTotal = d1 + d2;
+        const archTotal = e1 + e2;
+
+        const infPct = (infTotal / totalCapacity) * 100;
+        const cavPct = (cavTotal / totalCapacity) * 100;
+        const archPct = (archTotal / totalCapacity) * 100;
+        const totalPct = infPct + cavPct + archPct;
+
+        document.getElementById('res-inf').innerText = infPct.toFixed(1) + '%';
+        document.getElementById('res-cav').innerText = cavPct.toFixed(1) + '%';
+        document.getElementById('res-arch').innerText = archPct.toFixed(1) + '%';
+        
+        const totalEl = document.getElementById('res-total');
+        totalEl.innerText = totalPct.toFixed(1) + '%';
+
+        const warningEl = document.getElementById('warning-msg');
+        if (totalPct < 100) {
+            warningEl.style.display = 'block';
+            totalEl.style.color = '#ff5252';
+        } else {
+            warningEl.style.display = 'none';
+            totalEl.style.color = '#00e676';
+        }
+
+        // Bear Trap Logic
+        let remainingSpaceBear = 100;
+        let bearArchRaw, bearCavRaw, bearInfRaw;
+
+        bearArchRaw = Math.min(archPct, remainingSpaceBear);
+        remainingSpaceBear -= bearArchRaw;
+
+        bearCavRaw = Math.min(cavPct, remainingSpaceBear);
+        remainingSpaceBear -= bearCavRaw;
+
+        bearInfRaw = Math.min(infPct, remainingSpaceBear, 10);
+        
+        let bearArchFinal = Math.ceil(bearArchRaw);
+        let bearCavFinal = Math.ceil(bearCavRaw);
+        
+        let totalBearCeil = bearArchFinal + bearCavFinal;
+        if (totalBearCeil > 100) {
+            if (bearArchFinal >= bearCavFinal) {
+                bearArchFinal = 100 - bearCavFinal;
+            } else {
+                bearCavFinal = 100 - bearArchFinal;
+            }
+        }
+        
+        let bearInfFinal = 100 - bearArchFinal - bearCavFinal;
+        if (bearInfFinal < 0) bearInfFinal = 0;
+
+        document.getElementById('bear-arch').innerText = bearArchFinal + '%';
+        document.getElementById('bear-cav').innerText = bearCavFinal + '%';
+        document.getElementById('bear-inf').innerText = bearInfFinal + '%';
+
+        // Vikings Logic
+        let remainingSpaceViking = 100;
+        let vikingInfRaw, vikingCavRaw, vikingArchRaw;
+        
+        vikingInfRaw = Math.min(infPct, remainingSpaceViking);
+        remainingSpaceViking -= vikingInfRaw;
+
+        vikingCavRaw = Math.min(cavPct, remainingSpaceViking);
+        remainingSpaceViking -= vikingCavRaw;
+
+        vikingArchRaw = Math.min(archPct, remainingSpaceViking);
+
+        let vikingInfFinal = Math.ceil(vikingInfRaw);
+        let vikingCavFinal = Math.ceil(vikingCavRaw);
+
+        let totalVikingCeil = vikingInfFinal + vikingCavFinal;
+        if (totalVikingCeil > 100) {
+            if (vikingInfFinal >= vikingCavFinal) {
+                vikingInfFinal = 100 - vikingCavFinal;
+            } else {
+                vikingCavFinal = 100 - vikingInfFinal;
+            }
+        }
+
+        let vikingArchFinal = 100 - vikingInfFinal - vikingCavFinal;
+        if (vikingArchFinal < 0) vikingArchFinal = 0;
+
+        document.getElementById('viking-inf').innerText = vikingInfFinal + '%';
+        document.getElementById('viking-cav').innerText = vikingCavFinal + '%';
+        document.getElementById('viking-arch').innerText = vikingArchFinal + '%';
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        calc();
+    });
+
+    document.querySelectorAll('input[type="text"], select').forEach(element => {
+        element.addEventListener('input', calc);
+        element.addEventListener('change', calc);
+    });
+</script>
+
+</body>
+</html>
