@@ -61,7 +61,8 @@
             font-size: 0.85rem;
             color: #aaa;
         }
-        input[type="number"], select {
+        /* 改用 text 允許輸入 + - * / */
+        input[type="text"], select {
             width: 100%;
             padding: 12px;
             background-color: var(--input-bg);
@@ -75,6 +76,15 @@
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
+        }
+
+        /* 算式即時預覽小字 */
+        .calc-preview {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 3px;
+            text-align: right;
+            min-height: 14px;
         }
 
         /* Radio Group 樣式 */
@@ -173,11 +183,13 @@
     <div class="input-row">
         <div class="input-group">
             <label>初始出征兵量</label>
-            <input type="number" id="a" placeholder="單隊兵量">
+            <input type="text" id="a" placeholder="例如: 500000+500000">
+            <div class="calc-preview" id="preview-a"></div>
         </div>
         <div class="input-group">
             <label>可出征隊伍數</label>
-            <input type="number" id="b" placeholder="隊伍數量">
+            <input type="text" id="b" placeholder="隊伍數量">
+            <div class="calc-preview" id="preview-b"></div>
         </div>
     </div>
 
@@ -189,55 +201,61 @@
                 <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
             </div>
         </div>
-        <div class="input-group">
-            <label>Mighty Bison Pet Buff</label>
-            <select id="bisonBuff">
-                <option value="0">LV.0</option>
-                <option value="1500">LV.1 +1500</option>
-                <option value="3000">LV.2 +3000</option>
-                <option value="4500">LV.3 +4500</option>
-                <option value="6000">LV.4 +6000</option>
-                <option value="7500">LV.5 +7500</option>
-                <option value="9000">LV.6 +9000</option>
-                <option value="10500">LV.7 +10500</option>
-                <option value="12000">LV.8 +12000</option>
-                <option value="13500">LV.9 +13500</option>
-                <option value="15000">LV.10 +15000</option>
-            </select>
-        </div>
+         <div class="input-group">
+            <label>Mighty Bison Pet Buff</label>
+            <select id="bisonBuff">
+                <option value="0">LV.0</option>
+                <option value="1500">LV.1 +1500</option>
+                <option value="3000">LV.2 +3000</option>
+                <option value="4500">LV.3 +4500</option>
+                <option value="6000">LV.4 +6000</option>
+                <option value="7500">LV.5 +7500</option>
+                <option value="9000">LV.6 +9000</option>
+                <option value="10500">LV.7 +10500</option>
+                <option value="12000">LV.8 +12000</option>
+                <option value="13500">LV.9 +13500</option>
+                <option value="15000">LV.10 +15000</option>
+            </select>
+        </div>
     </div>
 
     <h3>2. 兵種數量輸入</h3>
     <div class="input-row">
         <div class="input-group">
             <label class="inf-label">Max LV. 步兵</label>
-            <input type="number" id="c1" placeholder="數量">
+            <input type="text" id="c1" placeholder="可輸入算式">
+            <div class="calc-preview" id="preview-c1"></div>
         </div>
         <div class="input-group">
             <label class="inf-label">2nd LV. 步兵</label>
-            <input type="number" id="c2" placeholder="數量">
+            <input type="text" id="c2" placeholder="可輸入算式">
+            <div class="calc-preview" id="preview-c2"></div>
         </div>
     </div>
 
     <div class="input-row">
         <div class="input-group">
             <label class="cav-label">Max LV. 騎兵</label>
-            <input type="number" id="d1" placeholder="數量">
+            <input type="text" id="d1" placeholder="可輸入算式">
+            <div class="calc-preview" id="preview-d1"></div>
         </div>
         <div class="input-group">
             <label class="cav-label">2nd LV. 騎兵</label>
-            <input type="number" id="d2" placeholder="數量">
+            <input type="text" id="d2" placeholder="可輸入算式">
+            <div class="calc-preview" id="preview-d2"></div>
         </div>
     </div>
 
     <div class="input-row">
         <div class="input-group">
             <label class="arch-label">Max LV. 弓兵</label>
-            <input type="number" id="e1" placeholder="數量">
+            <input type="text" id="e1" placeholder="可輸入算式">
+            <div class="calc-preview" id="preview-e1"></div>
         </div>
         <div class="input-group">
             <label class="arch-label">2nd LV. 弓兵</label>
-            <input type="number" id="e2" placeholder="數量">
+            <input type="text" id="e2" placeholder="可輸入算式">
+            <div class="calc-preview" id="preview-e2"></div>
         </div>
     </div>
 
@@ -311,18 +329,55 @@
 </div>
 
 <script>
-    // 儲存資料到 localStorage
+    // 支援算式解析的運算函式
+    function parseValue(id) {
+        const rawStr = document.getElementById(id).value.trim();
+        const previewEl = document.getElementById('preview-' + id);
+
+        if (!rawStr) {
+            if (previewEl) previewEl.innerText = '';
+            return 0;
+        }
+
+        try {
+            // 過濾掉不安全的字元，只允許數字、加減乘除、小數點與括號
+            const sanitized = rawStr.replace(/[^0-9+\-*/().]/g, '');
+            if (!sanitized) {
+                if (previewEl) previewEl.innerText = '';
+                return 0;
+            }
+
+            // 使用 eval 計算結果
+            const result = eval(sanitized);
+            
+            if (isNaN(result) || !isFinite(result)) {
+                if (previewEl) previewEl.innerText = '格式錯誤';
+                return 0;
+            }
+
+            // 如果使用者輸入的是算式（含有運算符號），在下方小字顯示計算後的數值
+            if (/[+\-*/]/.test(sanitized)) {
+                if (previewEl) previewEl.innerText = `= ${Number(result.toLocaleString())}`;
+            } else {
+                if (previewEl) previewEl.innerText = '';
+            }
+
+            return result;
+        } catch (e) {
+            if (previewEl) previewEl.innerText = '計算中...';
+            return 0;
+        }
+    }
+
+    // 儲存資料到 localStorage (儲存原始輸入的字串，例如 "500000+500000")
     function saveData() {
-        // 儲存數字輸入框
-        document.querySelectorAll('input[type="number"]').forEach(input => {
+        document.querySelectorAll('input[type="text"]').forEach(input => {
             localStorage.setItem('k_input_' + input.id, input.value);
         });
 
-        // 儲存下拉選單
         const bison = document.getElementById('bisonBuff');
         localStorage.setItem('k_bison', bison.value);
 
-        // 儲存 Troop Buff 單選框
         const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
         if (selectedBuff) {
             localStorage.setItem('k_troopBuff', selectedBuff.value);
@@ -333,27 +388,24 @@
 
     // 從 localStorage 讀取資料
     function loadData() {
-        // 讀取數字輸入框
-        document.querySelectorAll('input[type="number"]').forEach(input => {
+        document.querySelectorAll('input[type="text"]').forEach(input => {
             const savedVal = localStorage.getItem('k_input_' + input.id);
             if (savedVal !== null) {
                 input.value = savedVal;
             }
         });
 
-        // 讀取下拉選單
         const savedBison = localStorage.getItem('k_bison');
         if (savedBison !== null) {
             document.getElementById('bisonBuff').value = savedBison;
         }
 
-        // 讀取 Troop Buff 單選框
         const savedTroopBuff = localStorage.getItem('k_troopBuff');
         if (savedTroopBuff !== null) {
             const radio = document.querySelector(`input[name="troopBuff"][value="${savedTroopBuff}"]`);
             if (radio) {
                 radio.checked = true;
-                radio.wasChecked = true; // 確保能正確取消
+                radio.wasChecked = true;
             }
         }
     }
@@ -371,17 +423,12 @@
         calc();
     }
 
-    function val(id) {
-        return parseFloat(document.getElementById(id).value) || 0;
-    }
-
     function calc() {
-        // 每次計算時順便儲存目前狀態
         saveData();
 
-        // 1. 獲取輸入
-        const initialTroop = val('a'); 
-        const b = val('b');
+        // 1. 獲取輸入 (透過 parseValue 支援算式)
+        const initialTroop = parseValue('a'); 
+        const b = parseValue('b');
         
         // 獲取 Troop Buff 選項
         const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
@@ -391,9 +438,9 @@
         const bisonBuffVal = parseFloat(document.getElementById('bisonBuff').value) || 0;
 
         // 兵種數量
-        const c1 = val('c1'); const c2 = val('c2'); 
-        const d1 = val('d1'); const d2 = val('d2');
-        const e1 = val('e1'); const e2 = val('e2');
+        const c1 = parseValue('c1'); const c2 = parseValue('c2'); 
+        const d1 = parseValue('d1'); const d2 = parseValue('d2');
+        const e1 = parseValue('e1'); const e2 = parseValue('e2');
 
         // 2. 計算「部隊最大兵量」: (初始出征兵量)*(1 + troop buff) + Mighty Bison pet buff
         const maxSingleTroopCapacity = initialTroop * (1 + troopBuffVal) + bisonBuffVal;
@@ -517,7 +564,7 @@
     });
 
     // 監聽所有輸入框與下拉選單的變動
-    document.querySelectorAll('input[type="number"], select').forEach(element => {
+    document.querySelectorAll('input[type="text"], select').forEach(element => {
         element.addEventListener('input', calc);
         element.addEventListener('change', calc);
     });
