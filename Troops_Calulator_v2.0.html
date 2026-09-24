@@ -192,17 +192,17 @@
         <div class="input-group">
             <label>Mighty Bison Pet Buff</label>
             <select id="bisonBuff">
-                <option value="lv.0">0</option>
-                <option value="lv.1 +1500">1500</option>
-                <option value="3000">lv.2 +3000</option>
-                <option value="4500">4500</option>
-                <option value="6000">6000</option>
-                <option value="7500">7500</option>
-                <option value="9000">9000</option>
-                <option value="10500">10500</option>
-                <option value="12000">12000</option>
-                <option value="13500">13500</option>
-                <option value="15000">15000</option>
+                <option value="0">LV.0</option>
+                <option value="1500">LV.1 +1500</option>
+                <option value="3000">LV.2 +3000</option>
+                <option value="4500">LV.3 +4500</option>
+                <option value="6000">LV.4 +6000</option>
+                <option value="7500">LV.5 +7500</option>
+                <option value="9000">LV.6 +9000</option>
+                <option value="10500">LV.7 +10500</option>
+                <option value="12000">LV.8 +12000</option>
+                <option value="13500">LV.9 +13500</option>
+                <option value="15000">LV.10 +15000</option>
             </select>
         </div>
     </div>
@@ -311,6 +311,53 @@
 </div>
 
 <script>
+    // 儲存資料到 localStorage
+    function saveData() {
+        // 儲存數字輸入框
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            localStorage.setItem('k_input_' + input.id, input.value);
+        });
+
+        // 儲存下拉選單
+        const bison = document.getElementById('bisonBuff');
+        localStorage.setItem('k_bison', bison.value);
+
+        // 儲存 Troop Buff 單選框
+        const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
+        if (selectedBuff) {
+            localStorage.setItem('k_troopBuff', selectedBuff.value);
+        } else {
+            localStorage.removeItem('k_troopBuff');
+        }
+    }
+
+    // 從 localStorage 讀取資料
+    function loadData() {
+        // 讀取數字輸入框
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            const savedVal = localStorage.getItem('k_input_' + input.id);
+            if (savedVal !== null) {
+                input.value = savedVal;
+            }
+        });
+
+        // 讀取下拉選單
+        const savedBison = localStorage.getItem('k_bison');
+        if (savedBison !== null) {
+            document.getElementById('bisonBuff').value = savedBison;
+        }
+
+        // 讀取 Troop Buff 單選框
+        const savedTroopBuff = localStorage.getItem('k_troopBuff');
+        if (savedTroopBuff !== null) {
+            const radio = document.querySelector(`input[name="troopBuff"][value="${savedTroopBuff}"]`);
+            if (radio) {
+                radio.checked = true;
+                radio.wasChecked = true; // 確保能正確取消
+            }
+        }
+    }
+
     // 支援 Radio 按鈕點擊兩次取消勾選的功能
     function handleRadioClick(radio) {
         if (radio.wasChecked) {
@@ -320,6 +367,7 @@
             document.querySelectorAll('input[name="troopBuff"]').forEach(r => r.wasChecked = false);
             radio.wasChecked = true;
         }
+        saveData();
         calc();
     }
 
@@ -328,6 +376,9 @@
     }
 
     function calc() {
+        // 每次計算時順便儲存目前狀態
+        saveData();
+
         // 1. 獲取輸入
         const initialTroop = val('a'); 
         const b = val('b');
@@ -345,13 +396,11 @@
         const e1 = val('e1'); const e2 = val('e2');
 
         // 2. 計算「部隊最大兵量」: (初始出征兵量)*(1 + troop buff) + Mighty Bison pet buff
-        // 註：這裡使用單隊/基準的兵量計算，若需要考慮隊伍數可乘上 b，依照您的公式維持 (initialTroop * (1 + troopBuffVal) + bisonBuffVal)
         const maxSingleTroopCapacity = initialTroop * (1 + troopBuffVal) + bisonBuffVal;
         
         // 總容量 = 單隊最大兵量 × 隊伍數
         const totalCapacity = maxSingleTroopCapacity * b;
 
-        // 顯示計算出的部隊最大兵量 (顯示單隊或總隊伍容量，這裡以單隊或總體呈現？依公式呈現單隊最大或總最大。此處顯示總隊伍對應的最大總兵量或單隊最大，我們將總兵量顯示出來，或加上千分位)
         document.getElementById('res-max-troop').innerText = Math.round(maxSingleTroopCapacity).toLocaleString();
 
         if (totalCapacity === 0) {
@@ -461,8 +510,11 @@
         document.getElementById('viking-arch').innerText = vikingArchFinal + '%';
     }
 
-    // 初始載入與監聽事件
-    document.addEventListener('DOMContentLoaded', calc);
+    // 頁面載入時先讀取資料，再執行一次計算
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        calc();
+    });
 
     // 監聽所有輸入框與下拉選單的變動
     document.querySelectorAll('input[type="number"], select').forEach(element => {
@@ -473,5 +525,3 @@
 
 </body>
 </html>
-
-```
