@@ -179,6 +179,8 @@
     <h2>👑 出征配兵計算器</h2>
 
     <h3>1. 隊伍設定</h3>
+    
+    <!-- 第一列：初始出征兵量、可出征隊伍數 -->
     <div class="input-row">
         <div class="input-group">
             <label>初始出征兵量</label>
@@ -192,14 +194,8 @@
         </div>
     </div>
 
+    <!-- 第二列：寵物技能-巨型蠻牛 怒不可遏、大師技能-維拉 人數優勢等級 -->
     <div class="input-row">
-        <div class="input-group">
-            <label>Troop Buff</label>
-            <div class="radio-group">
-                <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
-                <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
-            </div>
-        </div>
         <div class="input-group">
             <label>寵物技能-巨型蠻牛 怒不可遏</label>
             <select id="bisonBuff">
@@ -216,9 +212,6 @@
                 <option value="15000">LV.10 +15000</option>
             </select>
         </div>
-    </div>
-
-    <div class="input-row">
         <div class="input-group">
             <label>大師技能-維拉 人數優勢等級</label>
             <select id="velaBuff">
@@ -234,6 +227,17 @@
                 <option value="27000">LV.9 +27,000</option>
                 <option value="30000">LV.10 +30,000</option>
             </select>
+        </div>
+    </div>
+
+    <!-- 第三列：出征部隊數量增益 -->
+    <div class="input-row">
+        <div class="input-group">
+            <label>出征部隊數量增益</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
+                <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
+            </div>
         </div>
     </div>
 
