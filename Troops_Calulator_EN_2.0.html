@@ -1,0 +1,244 @@
+    /* Calculation live preview small text */
+    .calc-preview {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 3px;
+        text-align: right;
+        min-height: 14px;
+    }
+
+    /* Radio Group styles */
+    .radio-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        height: 45px;
+    }
+    .radio-label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #ccc;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+    .radio-label input {
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+    
+    /* Troop type colors */
+    .inf-label { color: #4fc3f7; } /* Infantry Blue */
+    .cav-label { color: #ffb74d; } /* Cavalry Orange */
+    .arch-label { color: #81c784; } /* Archer Green */
+
+    .result-box {
+        background-color: #252526;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        border-left: 4px solid #555;
+    }
+    .result-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    .warning {
+        background-color: rgba(255, 82, 82, 0.15);
+        color: var(--danger);
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+        display: none;
+        border: 1px solid var(--danger);
+    }
+
+    .strategy-section {
+        margin-top: 30px;
+        border-top: 1px dashed #444;
+        padding-top: 15px;
+    }
+    .strategy-title {
+        text-align: center;
+        color: var(--primary);
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    .strategy-rec {
+        display: flex;
+        justify-content: space-around;
+        text-align: center;
+        background: #1a1a1a;
+        padding: 15px 0;
+        border-radius: 8px;
+        border: 1px solid var(--primary);
+    }
+    .strategy-val {
+        font-size: 1.4rem;
+        font-weight: bold;
+        display: block;
+    }
+    .strategy-key {
+        font-size: 0.8rem;
+        color: #888;
+    }
+    .sub-note {
+        font-size: 0.8rem;
+        color: #666;
+        text-align: center;
+        margin-top: 8px;
+    }
+</style>
+
+
+<h3>1. March Settings</h3>
+<div class="input-row">
+    <div class="input-group">
+        <label>Base March Capacity</label>
+        <input type="text" id="a" placeholder="e.g., 500000+500000">
+        <div class="calc-preview" id="preview-a"></div>
+    </div>
+    <div class="input-group">
+        <label>Available Marches</label>
+        <input type="text" id="b" placeholder="Number of marches">
+        <div class="calc-preview" id="preview-b"></div>
+    </div>
+</div>
+
+<div class="input-row">
+    <div class="input-group">
+        <label>Troop Buff</label>
+        <div class="radio-group">
+            <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
+            <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
+        </div>
+    </div>
+    <div class="input-group">
+        <label>Mighty Bison Pet Buff</label>
+        <select id="bisonBuff">
+            <option value="0">0</option>
+            <option value="1500">LV.1 +1500</option>
+            <option value="3000">LV.2 +3000</option>
+            <option value="4500">LV.3 +4500</option>
+            <option value="6000">LV.4 +6000</option>
+            <option value="7500">LV.5 +7500</option>
+            <option value="9000">LV.6 +9000</option>
+            <option value="10500">LV.7 +10500</option>
+            <option value="12000">LV.8 +12000</option>
+            <option value="13500">LV.9 +13500</option>
+            <option value="15000">LV.10 +15000</option>
+        </select>
+    </div>
+</div>
+
+<h3>2. Troop Quantities</h3>
+<div class="input-row">
+    <div class="input-group">
+        <label class="inf-label">Max LV. Infantry</label>
+        <input type="text" id="c1" placeholder="Can use math formula">
+        <div class="calc-preview" id="preview-c1"></div>
+    </div>
+    <div class="input-group">
+        <label class="inf-label">2nd LV. Infantry</label>
+        <input type="text" id="c2" placeholder="Can use math formula">
+        <div class="calc-preview" id="preview-c2"></div>
+    </div>
+</div>
+
+<div class="input-row">
+    <div class="input-group">
+        <label class="cav-label">Max LV. Cavalry</label>
+        <input type="text" id="d1" placeholder="Can use math formula">
+        <div class="calc-preview" id="preview-d1"></div>
+    </div>
+    <div class="input-group">
+        <label class="cav-label">2nd LV. Cavalry</label>
+        <input type="text" id="d2" placeholder="Can use math formula">
+        <div class="calc-preview" id="preview-d2"></div>
+    </div>
+</div>
+
+<div class="input-row">
+    <div class="input-group">
+        <label class="arch-label">Max LV. Archer</label>
+        <input type="text" id="e1" placeholder="Can use math formula">
+        <div class="calc-preview" id="preview-e1"></div>
+    </div>
+    <div class="input-group">
+        <label class="arch-label">2nd LV. Archer</label>
+        <input type="text" id="e2" placeholder="Can use math formula">
+        <div class="calc-preview" id="preview-e2"></div>
+    </div>
+</div>
+
+<div class="result-box" id="resultBox">
+    <h3>📊 Maximum Troop Ratios</h3>
+    <div class="result-item" style="border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 8px;">
+        <span style="color: var(--primary); font-weight: bold;">🛡️ Max Single March Capacity:</span>
+        <span id="res-max-troop" style="color: var(--primary); font-weight: bold;">0</span>
+    </div>
+    <div class="result-item">
+        <span>🛡️ Infantry Max Ratio:</span>
+        <span id="res-inf" style="color:#4fc3f7">0.0%</span>
+    </div>
+    <div class="result-item">
+        <span>🐎 Cavalry Max Ratio:</span>
+        <span id="res-cav" style="color:#ffb74d">0.0%</span>
+    </div>
+    <div class="result-item">
+        <span>🏹 Archer Max Ratio:</span>
+        <span id="res-arch" style="color:#81c784">0.0%</span>
+    </div>
+    <div class="result-item" style="border-top: 1px solid #444; padding-top:5px; margin-top:5px;">
+        <span style="font-size:0.9rem; color:#888">Current Total Share:</span>
+        <span id="res-total">0.0%</span>
+    </div>
+</div>
+
+<div id="warning-msg" class="warning">
+    ⚠️ You cannot fill your march capacity! Consider reducing active marches.
+</div>
+
+<div class="strategy-section" id="bearSection">
+    <div class="strategy-title">🐻 Bear Trap Recommended Ratio</div>
+    
+    <div class="strategy-rec">
+        <div>
+            <span class="strategy-val" id="bear-inf" style="color:#4fc3f7">0%</span>
+            <span class="strategy-key">Infantry (Max 10%)</span>
+        </div>
+        <div>
+            <span class="strategy-val" id="bear-cav" style="color:#ffb74d">0%</span>
+            <span class="strategy-key">Cavalry</span>
+        </div>
+        <div>
+            <span class="strategy-val" id="bear-arch" style="color:#81c784">0%</span>
+            <span class="strategy-key">Archer</span>
+        </div>
+    </div>
+    <div class="sub-note">Logic: Archer(Round up) → Cavalry(Round up) → Infantry(Remainder, Max 10%). Total sums to 100%.</div>
+</div>
+
+<div class="strategy-section" id="vikingSection">
+    <div class="strategy-title">🏴‍☠️ Vikings Recommended Ratio</div>
+    
+    <div class="strategy-rec">
+        <div>
+            <span class="strategy-val" id="viking-inf" style="color:#4fc3f7">0%</span>
+            <span class="strategy-key">Infantry (All out)</span>
+        </div>
+        <div>
+            <span class="strategy-val" id="viking-cav" style="color:#ffb74d">0%</span>
+            <span class="strategy-key">Cavalry</span>
+        </div>
+        <div>
+            <span class="strategy-val" id="viking-arch" style="color:#81c784">0%</span>
+            <span class="strategy-key">Archer</span>
+        </div>
+    </div>
+    <div class="sub-note">Logic: Infantry(Round up, Max 100%) → Cavalry(Round up) → Archer(Remainder). Total sums to 100%.</div>
+</div>
