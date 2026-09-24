@@ -201,7 +201,7 @@
             </div>
         </div>
         <div class="input-group">
-            <label>Mighty Bison Pet Buff</label>
+            <label>寵物技能-巨型蠻牛 怒不可遏</label>
             <select id="bisonBuff">
                 <option value="0">0</option>
                 <option value="1500">LV.1 +1500</option>
@@ -214,6 +214,25 @@
                 <option value="12000">LV.8 +12000</option>
                 <option value="13500">LV.9 +13500</option>
                 <option value="15000">LV.10 +15000</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label>大師技能-維拉 人數優勢等級</label>
+            <select id="velaBuff">
+                <option value="0">LV.0</option>
+                <option value="3000">LV.1 +3,000</option>
+                <option value="6000">LV.2 +6,000</option>
+                <option value="9000">LV.3 +9,000</option>
+                <option value="12000">LV.4 +12,000</option>
+                <option value="15000">LV.5 +15,000</option>
+                <option value="18000">LV.6 +18,000</option>
+                <option value="21000">LV.7 +21,000</option>
+                <option value="24000">LV.8 +24,000</option>
+                <option value="27000">LV.9 +27,000</option>
+                <option value="30000">LV.10 +30,000</option>
             </select>
         </div>
     </div>
@@ -264,6 +283,10 @@
             <span style="color: var(--primary); font-weight: bold;">🛡️ 你的部隊最大兵量:</span>
             <span id="res-max-troop" style="color: var(--primary); font-weight: bold;">0</span>
         </div>
+        <div class="result-item" style="border-bottom: 1px solid #444; padding-bottom: 8px; margin-bottom: 8px;">
+            <span style="color: #ff9800; font-weight: bold;">🐻 狩獵巨熊部隊兵量:</span>
+            <span id="res-bear-troop" style="color: #ff9800; font-weight: bold;">0</span>
+        </div>
         <div class="result-item">
             <span>🛡️ 步兵最大比例:</span>
             <span id="res-inf" style="color:#4fc3f7">0.0%</span>
@@ -303,7 +326,7 @@
                 <span class="strategy-key">弓兵</span>
             </div>
         </div>
-        <div class="sub-note">邏輯：弓兵(進位) → 騎兵(進位) → 步兵(餘額, Max 10%)。總和為 100%。</div>
+        <div class="sub-note">邏輯：分母採「狩獵巨熊部隊兵量」。弓兵(進位) → 騎兵(進位) → 步兵(餘額, Max 10%)。總和為 100%。</div>
     </div>
 
     <div class="strategy-section" id="vikingSection">
@@ -328,7 +351,7 @@
 </div>
 
 <script>
-    // 支援算式解析的運算函式（修正 NaN 預覽問題）
+    // 支援算式解析的運算函式
     function parseValue(id) {
         const rawStr = document.getElementById(id).value.trim();
         const previewEl = document.getElementById('preview-' + id);
@@ -339,14 +362,12 @@
         }
 
         try {
-            // 過濾掉不安全的字元，只允許數字、加減乘除、小數點與括號
             const sanitized = rawStr.replace(/[^0-9+\-*/().]/g, '');
             if (!sanitized) {
                 if (previewEl) previewEl.innerText = '';
                 return 0;
             }
 
-            // 使用 eval 計算結果
             const result = eval(sanitized);
             
             if (isNaN(result) || !isFinite(result)) {
@@ -354,7 +375,6 @@
                 return 0;
             }
 
-            // 如果使用者輸入的是算式（含有運算符號），在下方小字顯示計算後的數值
             if (/[+\-*/]/.test(sanitized)) {
                 if (previewEl) previewEl.innerText = `= ${Math.round(result).toLocaleString()}`;
             } else {
@@ -377,6 +397,9 @@
         const bison = document.getElementById('bisonBuff');
         localStorage.setItem('k_bison', bison.value);
 
+        const vela = document.getElementById('velaBuff');
+        localStorage.setItem('k_vela', vela.value);
+
         const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
         if (selectedBuff) {
             localStorage.setItem('k_troopBuff', selectedBuff.value);
@@ -397,6 +420,11 @@
         const savedBison = localStorage.getItem('k_bison');
         if (savedBison !== null) {
             document.getElementById('bisonBuff').value = savedBison;
+        }
+
+        const savedVela = localStorage.getItem('k_vela');
+        if (savedVela !== null) {
+            document.getElementById('velaBuff').value = savedVela;
         }
 
         const savedTroopBuff = localStorage.getItem('k_troopBuff');
@@ -425,29 +453,33 @@
     function calc() {
         saveData();
 
-        // 1. 獲取輸入 (透過 parseValue 支援算式)
+        // 1. 獲取輸入
         const initialTroop = parseValue('a'); 
         const b = parseValue('b');
         
-        // 獲取 Troop Buff 選項
         const selectedBuff = document.querySelector('input[name="troopBuff"]:checked');
         const troopBuffVal = selectedBuff ? parseFloat(selectedBuff.value) : 0;
 
-        // 獲取 Bison Pet Buff
         const bisonBuffVal = parseFloat(document.getElementById('bisonBuff').value) || 0;
+        const velaBuffVal = parseFloat(document.getElementById('velaBuff').value) || 0;
 
         // 兵種數量
         const c1 = parseValue('c1'); const c2 = parseValue('c2'); 
         const d1 = parseValue('d1'); const d2 = parseValue('d2');
         const e1 = parseValue('e1'); const e2 = parseValue('e2');
 
-        // 2. 計算「部隊最大兵量」: (初始出征兵量)*(1 + troop buff) + Mighty Bison pet buff
+        // 2. 計算「部隊最大兵量」: (初始出征兵量)*(1 + troop buff) + 寵物技能-巨型蠻牛
         const maxSingleTroopCapacity = initialTroop * (1 + troopBuffVal) + bisonBuffVal;
         
+        // 3. 計算「狩獵巨熊部隊兵量」: (初始出征兵量)*(1 + troop buff) + 寵物技能-巨型蠻牛 + 大師技能-維拉
+        const bearSingleTroopCapacity = initialTroop * (1 + troopBuffVal) + bisonBuffVal + velaBuffVal;
+
         // 總容量 = 單隊最大兵量 × 隊伍數
         const totalCapacity = maxSingleTroopCapacity * b;
+        const bearTotalCapacity = bearSingleTroopCapacity * b;
 
         document.getElementById('res-max-troop').innerText = Math.round(maxSingleTroopCapacity).toLocaleString();
+        document.getElementById('res-bear-troop').innerText = Math.round(bearSingleTroopCapacity).toLocaleString();
 
         if (totalCapacity === 0) {
             document.getElementById('res-inf').innerText = '0.0%';
@@ -469,13 +501,12 @@
         const cavTotal = d1 + d2;
         const archTotal = e1 + e2;
 
-        // 3. 計算各兵種最大可提供比例
+        // 4. 計算各兵種最大可提供比例
         const infPct = (infTotal / totalCapacity) * 100;
         const cavPct = (cavTotal / totalCapacity) * 100;
         const archPct = (archTotal / totalCapacity) * 100;
         const totalPct = infPct + cavPct + archPct;
 
-        // 4. 更新「最大比例」顯示
         document.getElementById('res-inf').innerText = infPct.toFixed(1) + '%';
         document.getElementById('res-cav').innerText = cavPct.toFixed(1) + '%';
         document.getElementById('res-arch').innerText = archPct.toFixed(1) + '%';
@@ -493,17 +524,21 @@
             totalEl.style.color = '#00e676';
         }
 
-        // --- 6. 打熊建議邏輯 ---
+        // --- 6. 打熊建議邏輯 (分母改用 bearTotalCapacity) ---
+        const bearInfPct = (infTotal / bearTotalCapacity) * 100;
+        const bearCavPct = (cavTotal / bearTotalCapacity) * 100;
+        const bearArchPct = (archTotal / bearTotalCapacity) * 100;
+
         let remainingSpaceBear = 100;
         let bearArchRaw, bearCavRaw, bearInfRaw;
 
-        bearArchRaw = Math.min(archPct, remainingSpaceBear);
+        bearArchRaw = Math.min(bearArchPct, remainingSpaceBear);
         remainingSpaceBear -= bearArchRaw;
 
-        bearCavRaw = Math.min(cavPct, remainingSpaceBear);
+        bearCavRaw = Math.min(bearCavPct, remainingSpaceBear);
         remainingSpaceBear -= bearCavRaw;
 
-        bearInfRaw = Math.min(infPct, remainingSpaceBear, 10);
+        bearInfRaw = Math.min(bearInfPct, remainingSpaceBear, 10);
         
         let bearArchFinal = Math.ceil(bearArchRaw);
         let bearCavFinal = Math.ceil(bearCavRaw);
