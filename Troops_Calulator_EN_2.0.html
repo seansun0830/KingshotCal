@@ -51,15 +51,22 @@
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
+            align-items: flex-end; /* 讓內部元素底部對齊，確保輸入框齊平 */
         }
         .input-group {
             flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         label {
             display: block;
             margin-bottom: 5px;
-            font-size: 0.85rem;
+            font-size: 0.8rem; /* 微微調小讓長英文更好排版 */
+            line-height: 1.2;
             color: #aaa;
+            min-height: 2.4rem; /* 固定標題區塊高度，避免單行與雙行造成輸入框錯位 */
+            display: flex;
+            align-items: flex-end; /* 讓文字靠下對齊 */
         }
         input[type="text"], select {
             width: 100%;
@@ -100,6 +107,7 @@
             color: #ccc;
             cursor: pointer;
             font-size: 0.95rem;
+            min-height: auto; /* 覆蓋上方通用 label 的設定 */
         }
         .radio-label input {
             accent-color: var(--primary);
@@ -233,7 +241,7 @@
     <!-- Row 3: Troop Capacity Buff -->
     <div class="input-row">
         <div class="input-group">
-            <label>Troop Capacity Buff</label>
+            <label style="min-height: auto;">Troop Capacity Buff</label>
             <div class="radio-group">
                 <label class="radio-label"><input type="radio" name="troopBuff" value="0.1" onclick="handleRadioClick(this)"> +10%</label>
                 <label class="radio-label"><input type="radio" name="troopBuff" value="0.2" onclick="handleRadioClick(this)"> +20%</label>
@@ -244,12 +252,12 @@
     <h3>2. Available Troops Input</h3>
     <div class="input-row">
         <div class="input-group">
-            <label class="inf-label">Max LV. Infantry</label>
+            <label style="min-height: auto;" class="inf-label">Max LV. Infantry</label>
             <input type="text" id="c1" placeholder="Formula allowed">
             <div class="calc-preview" id="preview-c1"></div>
         </div>
         <div class="input-group">
-            <label class="inf-label">2nd LV. Infantry</label>
+            <label style="min-height: auto;" class="inf-label">2nd LV. Infantry</label>
             <input type="text" id="c2" placeholder="Formula allowed">
             <div class="calc-preview" id="preview-c2"></div>
         </div>
@@ -257,12 +265,12 @@
 
     <div class="input-row">
         <div class="input-group">
-            <label class="cav-label">Max LV. Cavalry</label>
+            <label style="min-height: auto;" class="cav-label">Max LV. Cavalry</label>
             <input type="text" id="d1" placeholder="Formula allowed">
             <div class="calc-preview" id="preview-d1"></div>
         </div>
         <div class="input-group">
-            <label class="cav-label">2nd LV. Cavalry</label>
+            <label style="min-height: auto;" class="cav-label">2nd LV. Cavalry</label>
             <input type="text" id="d2" placeholder="Formula allowed">
             <div class="calc-preview" id="preview-d2"></div>
         </div>
@@ -270,12 +278,12 @@
 
     <div class="input-row">
         <div class="input-group">
-            <label class="arch-label">Max LV. Archer</label>
+            <label style="min-height: auto;" class="arch-label">Max LV. Archer</label>
             <input type="text" id="e1" placeholder="Formula allowed">
             <div class="calc-preview" id="preview-e1"></div>
         </div>
         <div class="input-group">
-            <label class="arch-label">2nd LV. Archer</label>
+            <label style="min-height: auto;" class="arch-label">2nd LV. Archer</label>
             <input type="text" id="e2" placeholder="Formula allowed">
             <div class="calc-preview" id="preview-e2"></div>
         </div>
